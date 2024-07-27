@@ -2,7 +2,7 @@
 FROM python:3.10.12
 
 # 작업 디렉토리 설정
-WORKDIR /app
+WORKDIR /workspace/keras-benchmarks
 
 # 필요한 패키지 설치
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -25,19 +25,22 @@ RUN apt-get install -y --no-install-recommends nvidia-container-toolkit
 ENV LD_LIBRARY_PATH="/usr/local/cuda/lib64/stubs:${LD_LIBRARY_PATH}"
 
 # 소스 코드 복사
-COPY . .
+COPY . /workspace/keras-benchmarks
+
+# 복사된 파일 확인
+RUN ls -al /workspace/keras-benchmarks/requirements/
 
 # pip 업그레이드
 RUN pip install --upgrade pip
 
 # keras-tensorflow 설치
-RUN pip install --no-cache-dir -r requirements/keras-tensorflow.txt
+RUN pip install --no-cache-dir -r /workspace/keras-benchmarks/requirements/keras-tensorflow.txt
 
 # 필요한 패키지 설치
-RUN bash shell/install.sh
+RUN bash /workspace/keras-benchmarks/shell/install.sh
 
 # PYTHONPATH 환경 변수 설정
-ENV PYTHONPATH="/app:${PYTHONPATH}"
+ENV PYTHONPATH="/workspace/keras-benchmarks:${PYTHONPATH}"
 
 # 실행 명령어 설정
-CMD ["bash", "shell/run.sh"]
+CMD ["bash", "/workspace/keras-benchmarks/shell/run.sh"]
