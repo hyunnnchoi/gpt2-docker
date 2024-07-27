@@ -34,7 +34,7 @@ RUN ls -al /workspace/keras-benchmarks/requirements/
 RUN pip install --upgrade pip
 
 # 특정 버전의 keras와 tensorflow 설치 추가
-RUN pip install keras==2.17.0 tensorflow==2.17.0 tensorflow-cuda==2.17.0
+RUN pip install keras==3.4.1 tensorflow==2.17.0 tensorflow-cuda==2.17.0
 
 # keras-tensorflow 설치 (기존 코드 유지)
 RUN pip install --no-cache-dir -r /workspace/keras-benchmarks/requirements/keras-common.txt
