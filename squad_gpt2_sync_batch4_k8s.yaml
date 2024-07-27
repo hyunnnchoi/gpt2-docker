@@ -1,0 +1,140 @@
+# squad_gpt2_sync_batch4_k8s.yaml
+apiVersion: kubeflow.org/v1
+kind: TFJob
+metadata:
+  name: squad-gpt2-sync-batch32-k8s
+spec:
+  runPolicy:
+    cleanPodPolicy: None
+  tfReplicaSpecs:
+    CHIEF:
+      replicas: 1
+      template:
+        spec:
+          containers:
+          - name: tensorflow
+            image: potato4332/gpt2-keras:v0.0.1  # 이미지 수정
+            imagePullPolicy: Always
+            command:
+            - /bin/sh
+            - -c
+            args:
+            - |
+              mkdir -p /workspace/NVML &&
+              JOB=$(python -c "import os, json; tf_config = json.loads(os.environ.get('TF_CONFIG') or '{}'); task_config = tf_config.get('task', {}); task_type = task_config.get('type'); task_index = task_config.get('index'); job_name = task_type; task_index = task_index; print(job_name+'_'+str(task_index))") &&
+              CHIEF_HOST=$(python -c "import os, json; tf_config = json.loads(os.environ.get('TF_CONFIG') or '{}'); cluster_config = tf_config.get('cluster', {}); chief_host = cluster_config.get('chief'); print(','.join(chief_host))") &&
+              mkdir -p /workspace &&
+              mkdir -p /result/squad_gpt2_sync_batch32_k8s &&  # 디렉토리 이름 변경
+              echo "squad_gpt2_sync_batch32_k8s" > /workspace/model.txt &&  # 모델 이름 변경
+              STARTTIME=$(date "+%H:%M:%S.%N") &&
+              echo "$STARTTIME" > /result/squad_gpt2_sync_batch32_k8s/squad_gpt2_sync_batch32_k8s_${JOB}_start_time.txt &&
+              top -d 0.1 -b | grep python > /result/squad_gpt2_sync_batch32_k8s/squad_gpt2_sync_batch32_k8s_${JOB}_cpu.txt &
+              mkdir -p /result/squad_gpt2_sync_batch32_k8s &&
+              python /workspace/keras-benchmarks/benchmark/gpt2/fit.py /workspace/SQuAD2.json 1 > /result/squad_gpt2_sync_batch32_k8s/squad_gpt2_sync_batch32_k8s_${JOB}_log.txt &&  # 스크립트 경로 수정
+              ENDTIME=$(date "+%H:%M:%S.%N") &&
+              echo "$ENDTIME" > /result/squad_gpt2_sync_batch32_k8s/squad_gpt2_sync_batch32_k8s_${JOB}_end_time.txt
+            env:
+            - name: ROOT_DATA_DIR
+              value: /data
+            - name: TF_CONFIG
+              value: '{"cluster": {"chief": ["chief0:2222"], "worker": ["worker0:2222", "worker1:2222", "worker2:2222"]}, "task": {"type": "chief", "index": 0}}'
+            - name: PYTHONPATH
+              value: "/workspace/keras-benchmarks:${PYTHONPATH}"
+            - name: LD_LIBRARY_PATH
+              value: "/usr/local/cuda/lib64/stubs:${LD_LIBRARY_PATH}"
+            ports:
+            - containerPort: 2222
+              name: tfjob-port
+            resources:
+              limits:
+                cpu: 5
+                nvidia.com/gpu: 1
+              requests:
+                cpu: 10m
+                nvidia.com/gpu: 1
+            volumeMounts:
+            - mountPath: /result
+              name: tfjob-data
+            - mountPath: /data
+              name: tfjob-dataset
+            - mountPath: /dev/shm
+              name: shmdir
+          nodeSelector:
+            twonode: worker
+          volumes:
+          - name: tfjob-data
+            persistentVolumeClaim:
+              claimName: tfjob-data-volume-claim
+          - name: tfjob-dataset
+            persistentVolumeClaim:
+              claimName: tfjob-nfs-dataset-storage-claim
+          - emptyDir:
+              medium: Memory
+              sizeLimit: 8G
+            name: shmdir
+    WORKER:
+      replicas: 3
+      template:
+        spec:
+          containers:
+          - name: tensorflow
+            image: potato4332/gpt2-keras:v0.0.1  # 이미지 수정
+            imagePullPolicy: Always
+            command:
+            - /bin/sh
+            - -c
+            args:
+            - |
+              mkdir -p /workspace/NVML &&
+              cd /workspace/NVML; make &&
+              JOB=$(python -c "import os, json; tf_config = json.loads(os.environ.get('TF_CONFIG') or '{}'); task_config = tf_config.get('task', {}); task_type = task_config.get('type'); task_index = task_config.get('index'); job_name = task_type; task_index = task_index; print(job_name+'_'+str(task_index))") &&
+              CHIEF_HOST=$(python -c "import os, json; tf_config = json.loads(os.environ.get('TF_CONFIG') or '{}'); cluster_config = tf_config.get('cluster', {}); chief_host = cluster_config.get('chief'); print(','.join(chief_host))") &&
+              mkdir -p /workspace &&
+              mkdir -p /result/squad_gpt2_sync_batch32_k8s &&  # 디렉토리 이름 변경
+              top -d 0.1 -b | grep python > /result/squad_gpt2_sync_batch32_k8s/squad_gpt2_sync_batch32_k8s_${JOB}_cpu.txt &
+              echo "squad_gpt2_sync_batch32_k8s" > /workspace/model.txt &&  # 모델 이름 변경
+              STARTTIME=$(date "+%H:%M:%S.%N") &&
+              echo "$STARTTIME" > /result/squad_gpt2_sync_batch32_k8s/squad_gpt2_sync_batch32_k8s_${JOB}_start_time.txt &&
+              mkdir -p /result/squad_gpt2_sync_batch32_k8s &&
+              python /workspace/keras-benchmarks/benchmark/gpt2/fit.py /workspace/SQuAD2.json 1 > /result/squad_gpt2_sync_batch32_k8s/squad_gpt2_sync_batch32_k8s_${JOB}_log.txt &&  # 스크립트 경로 수정
+              ENDTIME=$(date "+%H:%M:%S.%N") &&
+              echo "$ENDTIME" > /result/squad_gpt2_sync_batch32_k8s/squad_gpt2_sync_batch32_k8s_${JOB}_end_time.txt
+            env:
+            - name: ROOT_DATA_DIR
+              value: /data
+            - name: TF_CONFIG
+              value: '{"cluster": {"chief": ["chief0:2222"], "worker": ["worker0:2222", "worker1:2222", "worker2:2222"]}, "task": {"type": "worker", "index": 0}}'
+            - name: PYTHONPATH
+              value: "/workspace/keras-benchmarks:${PYTHONPATH}"
+            - name: LD_LIBRARY_PATH
+              value: "/usr/local/cuda/lib64/stubs:${LD_LIBRARY_PATH}"
+            ports:
+            - containerPort: 2222
+              name: tfjob-port
+            resources:
+              limits:
+                cpu: 5
+                nvidia.com/gpu: 1
+              requests:
+                cpu: 10m
+                nvidia.com/gpu: 1
+            volumeMounts:
+            - mountPath: /result
+              name: tfjob-data
+            - mountPath: /data
+              name: tfjob-dataset
+            - mountPath: /dev/shm
+              name: shmdir
+          nodeSelector:
+            twonode: worker
+          volumes:
+          - name: tfjob-data
+            persistentVolumeClaim:
+              claimName: tfjob-data-volume-claim
+          - name: tfjob-dataset
+            persistentVolumeClaim:
+              claimName: tfjob-nfs-dataset-storage-claim
+          - emptyDir:
+              medium: Memory
+              sizeLimit: 8G
+            name: shmdir
