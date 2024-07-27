@@ -1,5 +1,5 @@
 # 베이스 이미지 선택 (Python 3.10 사용)
-FROM python:3.10.0
+FROM python:3.10.12
 
 # 작업 디렉토리 설정
 WORKDIR /workspace/keras-benchmarks
@@ -26,6 +26,9 @@ ENV LD_LIBRARY_PATH="/usr/local/cuda/lib64/stubs:${LD_LIBRARY_PATH}"
 
 # 소스 코드 복사
 COPY . /workspace/keras-benchmarks
+
+# pip 업그레이드
+RUN pip install --upgrade pip
 
 # keras-tensorflow 설치
 RUN pip install --no-cache-dir -r /workspace/keras-benchmarks/requirements/keras-tensorflow.txt
