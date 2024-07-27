@@ -33,7 +33,10 @@ RUN ls -al /workspace/keras-benchmarks/requirements/
 # pip 업그레이드
 RUN pip install --upgrade pip
 
-# keras-tensorflow 설치
+# 특정 버전의 keras와 tensorflow 설치 추가
+RUN pip install keras==2.17.0 tensorflow==2.17.0 tensorflow-cuda==2.17.0
+
+# keras-tensorflow 설치 (기존 코드 유지)
 RUN pip install --no-cache-dir -r /workspace/keras-benchmarks/requirements/keras-common.txt
 
 # 필요한 패키지 설치
@@ -43,5 +46,4 @@ RUN bash /workspace/keras-benchmarks/shell/install.sh
 ENV PYTHONPATH="/workspace/keras-benchmarks:${PYTHONPATH}"
 
 # 실행 명령어 설정
-ENTRYPOINT ["bash", "-c"]
-CMD ["bash /workspace/keras-benchmarks/shell/install.sh && bash /workspace/keras-benchmarks/shell/run.sh"]
+CMD ["bash", "-c", "bash /workspace/keras-benchmarks/shell/install.sh && bash /workspace/keras-benchmarks/shell/run.sh"]
