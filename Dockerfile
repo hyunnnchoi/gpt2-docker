@@ -25,7 +25,7 @@ RUN apt-get install -y --no-install-recommends nvidia-container-toolkit
 ENV LD_LIBRARY_PATH="/usr/local/cuda/lib64/stubs:${LD_LIBRARY_PATH}"
 
 # 소스 코드 복사
-COPY . /workspace/keras-benchmarks
+COPY ./keras-benchmarks /workspace/keras-benchmarks
 
 # 복사된 파일 확인
 RUN ls -al /workspace/keras-benchmarks/requirements/
@@ -34,7 +34,7 @@ RUN ls -al /workspace/keras-benchmarks/requirements/
 RUN pip install --upgrade pip
 
 # keras-tensorflow 설치
-RUN pip install --no-cache-dir -r /workspace/keras-benchmarks/requirements/keras-tensorflow.txt
+RUN pip install --no-cache-dir -r /workspace/keras-benchmarks/requirements/keras-common.txt
 
 # 필요한 패키지 설치
 RUN bash /workspace/keras-benchmarks/shell/install.sh
