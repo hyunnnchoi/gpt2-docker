@@ -2,4 +2,4 @@ tf_keras==2.17.0
 keras-nlp==0.8.2
 keras-cv==0.8.2
 tensorflow-datasets==4.9.3
-tensorflow[and-cuda]==2.17.0
+tensorflow[and-cuda]==2.15.0.post1
