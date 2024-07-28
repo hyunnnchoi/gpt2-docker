@@ -29,6 +29,6 @@ export KERAS_HOME=configs/keras-tensorflow
 for model_name in "${models[@]}"; do
 printf "$model_name:\n" | tee -a $output_file
 printf "fit:\n" | tee -a $output_file
-python3.11 /workspace/keras-benchmarks/benchmark/$model_name/fit_ar_nccl.py $output_file
+python3.11 /workspace/keras-benchmarks/benchmark/$model_name/fit.py $output_file
 printf "\n\n" | tee -a $output_file
 done
