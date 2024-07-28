@@ -45,4 +45,4 @@ RUN bash /workspace/keras-benchmarks/shell/install.sh
 ENV PYTHONPATH="/workspace/keras-benchmarks:${PYTHONPATH}"
 
 # 실행 명령어 설정
-CMD ["bash", "-c", "bash /workspace/keras-benchmarks/shell/install.sh && bash /workspace/keras-benchmarks/shell/run.sh"]
+CMD ["bash", "-c", "bash /workspace/keras-benchmarks/shell/run.sh"]
