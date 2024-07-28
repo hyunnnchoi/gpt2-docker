@@ -42,7 +42,7 @@ RUN pip install --upgrade pip
 RUN bash /workspace/keras-benchmarks/shell/install.sh
 
 # PYTHONPATH 환경 변수 설정
-ENV PYTHONPATH="/workspace/keras-benchmarks:${PYTHONPATH}"
+# ENV PYTHONPATH="/workspace/keras-benchmarks:${PYTHONPATH}"
 
 # 실행 명령어 설정
 CMD ["bash", "-c", "bash /workspace/keras-benchmarks/shell/run.sh"]
