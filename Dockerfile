@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A4B469963BF863CC \
     && apt-get update
 
+
 # 필요한 패키지 설치
 RUN apt-get update && apt-get install -y --no-install-recommends \
     software-properties-common \
@@ -23,6 +24,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3.10 \
     python3.10-dev \
     python3.10-distutils \
+    && rm -rf /var/lib/apt/lists/*
+
+    # cuDNN 설치
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libcudnn8=8.9.5.*-1+cuda12.3 \
+    libcudnn8-dev=8.9.5.*-1+cuda12.3 \
+    && apt-mark hold libcudnn8 \
     && rm -rf /var/lib/apt/lists/*
 
 # pip 설치
