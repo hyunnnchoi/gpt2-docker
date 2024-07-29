@@ -26,13 +26,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3.10-distutils \
     && rm -rf /var/lib/apt/lists/*
 
-    # cuDNN 설치
+# NVIDIA 저장소 추가 및 cuDNN 설치
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libcudnn8=8.9.5.*-1+cuda12.3 \
-    libcudnn8-dev=8.9.5.*-1+cuda12.3 \
+    gnupg2 curl \
+    && curl -fsSL https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/3bf863cc.pub | apt-key add - \
+    && echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64 /" > /etc/apt/sources.list.d/cuda.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
+    libcudnn8 \
+    libcudnn8-dev \
     && apt-mark hold libcudnn8 \
     && rm -rf /var/lib/apt/lists/*
-
+    
 # pip 설치
 RUN wget https://bootstrap.pypa.io/get-pip.py && python3.10 get-pip.py
 
