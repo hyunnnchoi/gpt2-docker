@@ -6,7 +6,6 @@ from benchmark import utils
 import os
 import tensorflow as tf
 import tensorflow_datasets as tfds
-from tensorflow.distribute import MultiWorkerMirroredStrategy
 
 os.environ["KERAS_BACKEND"] = "tensorflow"
 
@@ -18,7 +17,7 @@ def get_model(preprocessor):
     return model
 
 def run(batch_size=benchmark.GPT2_FIT_BATCH_SIZE):
-    strategy = MultiWorkerMirroredStrategy()
+    strategy = tf.distribute.MultiWorkerMirroredStrategy()
     with strategy.scope():
         if hasattr(keras, "config"):
             keras.config.set_dtype_policy(benchmark.FLOAT_T4)
