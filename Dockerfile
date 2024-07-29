@@ -28,10 +28,10 @@ ENV LD_LIBRARY_PATH="/usr/local/cuda/lib64/stubs:${LD_LIBRARY_PATH}"
 COPY ./keras-benchmarks /workspace/keras-benchmarks
 
 # 복사된 파일 확인
-RUN ls -al /workspace/keras-benchmarks/requirements/
+# RUN ls -al /workspace/keras-benchmarks/requirements/
 
 # pip 업그레이드
-RUN pip install --upgrade pip
+# RUN pip install --upgrade pip
 
 # 특정 버전의 keras와 tensorflow 설치 추가
 
