@@ -6,4 +6,4 @@ pip install keras==3.2.0 #3.0.5
 pip install keras-nlp
 pip install -e /workspace/keras-benchmarks
 
-echo "Installed libraries from hhlee.txt"
+echo "Installed libraries from .txt"
