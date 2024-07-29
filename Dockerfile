@@ -9,6 +9,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     gnupg2 \
     curl \
+    python3 \
+    python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
 # NVIDIA 패키지 레포지토리 추가
@@ -32,19 +34,19 @@ COPY ./SQuAD2_sampled.json /workspace/keras-benchmarks/SQuAD2_sampled.json
 RUN ls -al /workspace/keras-benchmarks
 
 # pip 업그레이드
-RUN pip install --upgrade pip
+RUN python3 -m pip install --upgrade pip
 
 # keras 및 필요한 패키지 설치
-RUN pip install keras==3.2.0 keras-nlp
-RUN pip install tensorflow-gpu==2.17.0
-RUN pip install -r /workspace/keras-benchmarks/requirements/hmchoi.txt
-RUN pip install -e /workspace/keras-benchmarks
+RUN python3 -m pip install keras==3.2.0 keras-nlp
+RUN python3 -m pip install tensorflow-gpu==2.17.0
+RUN python3 -m pip install -r /workspace/keras-benchmarks/requirements/hmchoi.txt
+RUN python3 -m pip install -e /workspace/keras-benchmarks
 
 # 설치된 패키지 확인
-RUN pip list
+RUN python3 -m pip list
 
 # PYTHONPATH 환경 변수 설정
 ENV PYTHONPATH="/workspace/keras-benchmarks:${PYTHONPATH}"
 
 # 실행 명령어 설정
-CMD ["bash", "-c", "export PYTHONPATH=$PYTHONPATH:/workspace/keras-benchmarks && python /workspace/keras-benchmarks/benchmark/gpt2/fit.py /workspace/keras-benchmarks/SQuAD2_sampled.json 4"]
+CMD ["bash", "-c", "export PYTHONPATH=$PYTHONPATH:/workspace/keras-benchmarks && python3 /workspace/keras-benchmarks/benchmark/gpt2/fit.py /workspace/keras-benchmarks/SQuAD2_sampled.json 4"]
