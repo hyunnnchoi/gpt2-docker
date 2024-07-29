@@ -1,5 +1,5 @@
-# 베이스 이미지 선택 (Python 3.10 사용)
-FROM python:3.10.12
+# NVIDIA CUDA 베이스 이미지 선택
+FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu20.04
 
 # 작업 디렉토리 설정
 WORKDIR /workspace/
@@ -26,7 +26,6 @@ ENV LD_LIBRARY_PATH="/usr/local/cuda/lib64/stubs:${LD_LIBRARY_PATH}"
 
 # 소스 코드 복사
 COPY ./keras-benchmarks /workspace/keras-benchmarks
-
 COPY ./SQuAD2_sampled.json /workspace/keras-benchmarks/SQuAD2_sampled.json
 
 # 복사된 파일 확인
@@ -37,6 +36,7 @@ RUN pip install --upgrade pip
 
 # keras 및 필요한 패키지 설치
 RUN pip install keras==3.2.0 keras-nlp
+RUN pip install tensorflow-gpu==2.17.0
 RUN pip install -r /workspace/keras-benchmarks/requirements/hmchoi.txt
 RUN pip install -e /workspace/keras-benchmarks
 
@@ -47,4 +47,4 @@ RUN pip list
 ENV PYTHONPATH="/workspace/keras-benchmarks:${PYTHONPATH}"
 
 # 실행 명령어 설정
-CMD ["bash", "-c", "export PYTHONPATH=$PYTHONPATH:/workspace/keras-benchmarks && bash /workspace/keras-benchmarks/shell/run.sh"]
+CMD ["bash", "-c", "export PYTHONPATH=$PYTHONPATH:/workspace/keras-benchmarks && python /workspace/keras-benchmarks/benchmark/gpt2/fit.py /workspace/keras-benchmarks/SQuAD2_sampled.json 4"]
