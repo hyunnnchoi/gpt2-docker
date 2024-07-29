@@ -1,50 +1,52 @@
-# 27/07/2024, EDITED BY HYUNMOK CHOI
-import keras
-import keras_nlp
-import benchmark
-from benchmark import utils
-import os
-import tensorflow as tf
-import tensorflow_datasets as tfds
+# NVIDIA CUDA 베이스 이미지 선택
+FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu20.04
 
-os.environ["KERAS_BACKEND"] = "tensorflow"
+# 작업 디렉토리 설정
+WORKDIR /workspace/
 
-def get_model(preprocessor):
-    model = keras_nlp.models.GPT2CausalLM.from_preset(
-        "gpt2_base_en", preprocessor=preprocessor
-    )
-    model.backbone.enable_lora(rank=4)
-    return model
+# 필요한 패키지 설치
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    wget \
+    gnupg2 \
+    curl \
+    python3 \
+    python3-pip \
+    && rm -rf /var/lib/apt/lists/*
 
-def run(batch_size=benchmark.GPT2_FIT_BATCH_SIZE):
-    strategy = tf.distribute.MultiWorkerMirroredStrategy()
-    with strategy.scope():
-        if hasattr(keras, "config"):
-            keras.config.set_dtype_policy(benchmark.FLOAT_T4)
-        else:
-            keras.mixed_precision.set_global_policy(benchmark.FLOAT_T4)
-        
-        preprocessor = keras_nlp.models.GPT2CausalLMPreprocessor.from_preset(
-            "gpt2_base_en",
-            sequence_length=benchmark.GPT2_SEQ_LENGTH,
-        )
-        model = get_model(preprocessor)
-        model.compile(
-            loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-            optimizer=keras.optimizers.AdamW(),
-            jit_compile=utils.use_jit(),
-        )
+# NVIDIA 패키지 레포지토리 추가
+RUN curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
+    && curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+    sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+    tee /etc/apt/sources.list.d/nvidia-container-toolkit.list \
+    && apt-get update
 
-    reddit_ds = tfds.load("reddit", split="train", as_supervised=True)
-    train_ds = (
-        reddit_ds.map(lambda document, _: document)
-        .batch(batch_size)
-        .cache()
-        .prefetch(tf.data.AUTOTUNE)
-    )
-    NUM_BATCHES = 500
-    dataset = train_ds.take(NUM_BATCHES)
-    return utils.fit(model, dataset)
+# NVIDIA Container Toolkit 설치
+RUN apt-get install -y --no-install-recommends nvidia-container-toolkit
 
-if __name__ == "__main__":
-    benchmark.benchmark(run)
+# NVML 경로를 LD_LIBRARY_PATH에 추가
+ENV LD_LIBRARY_PATH="/usr/local/cuda/lib64/stubs:${LD_LIBRARY_PATH}"
+
+# 소스 코드 복사
+COPY ./keras-benchmarks /workspace/keras-benchmarks
+COPY ./SQuAD2_sampled.json /workspace/keras-benchmarks/SQuAD2_sampled.json
+
+# 복사된 파일 확인
+RUN ls -al /workspace/keras-benchmarks
+
+# pip 업그레이드
+RUN python3 -m pip install --upgrade pip
+
+# keras 및 필요한 패키지 설치
+RUN python3 -m pip install keras==3.2.0 keras-nlp
+RUN python3 -m pip install tensorflow-gpu==2.17.0
+RUN python3 -m pip install -r /workspace/keras-benchmarks/requirements/hmchoi.txt
+RUN python3 -m pip install -e /workspace/keras-benchmarks
+
+# 설치된 패키지 확인
+RUN python3 -m pip list
+
+# PYTHONPATH 환경 변수 설정
+ENV PYTHONPATH="/workspace/keras-benchmarks:${PYTHONPATH}"
+
+# 실행 명령어 설정
+CMD ["bash", "-c", "export PYTHONPATH=$PYTHONPATH:/workspace/keras-benchmarks && python3 /workspace/keras-benchmarks/benchmark/gpt2/fit.py /workspace/keras-benchmarks/SQuAD2_sampled.json 4"]
