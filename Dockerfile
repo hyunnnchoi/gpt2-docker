@@ -27,6 +27,8 @@ ENV LD_LIBRARY_PATH="/usr/local/cuda/lib64/stubs:${LD_LIBRARY_PATH}"
 # 소스 코드 복사
 COPY ./keras-benchmarks /workspace/keras-benchmarks
 
+COPY ./SQuAD2_sampled.json /workspace/keras-benchmarks/SQuAD2_sampled.json
+
 # 복사된 파일 확인
 RUN ls -al /workspace/keras-benchmarks
 
