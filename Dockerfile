@@ -4,13 +4,19 @@ FROM nvidia/cuda:12.5.0-devel-ubuntu20.04
 # 환경 변수 설정
 ENV DEBIAN_FRONTEND=noninteractive
 
+# GPG 키 및 저장소 업데이트
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    gnupg \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A4B469963BF863CC \
+    && apt-get update
+
 # 필요한 패키지 설치
 RUN apt-get update && apt-get install -y --no-install-recommends \
     software-properties-common \
     wget \
-    gnupg2 \
     curl \
-    ca-certificates \
     build-essential \
     && add-apt-repository ppa:deadsnakes/ppa \
     && apt-get update && apt-get install -y --no-install-recommends \
@@ -21,6 +27,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # pip 설치
 RUN wget https://bootstrap.pypa.io/get-pip.py && python3.10 get-pip.py
+
+# 나머지 Dockerfile 내용은 그대로 유지...
 
 # 소스 코드 복사
 COPY ./keras-benchmarks /workspace/keras-benchmarks
