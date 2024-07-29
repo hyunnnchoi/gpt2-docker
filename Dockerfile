@@ -33,13 +33,16 @@ RUN ls -al /workspace/keras-benchmarks
 # pip 업그레이드
 RUN pip install --upgrade pip
 
-# 필요한 패키지 설치
+# keras 및 필요한 패키지 설치
 RUN pip install keras==3.2.0 keras-nlp
 RUN pip install -r /workspace/keras-benchmarks/requirements/hmchoi.txt
 RUN pip install -e /workspace/keras-benchmarks
+
+# 설치된 패키지 확인
+RUN pip list
 
 # PYTHONPATH 환경 변수 설정
 ENV PYTHONPATH="/workspace/keras-benchmarks:${PYTHONPATH}"
 
 # 실행 명령어 설정
-CMD ["bash", "-c", "bash /workspace/keras-benchmarks/shell/run.sh"]
+CMD ["bash", "-c", "export PYTHONPATH=$PYTHONPATH:/workspace/keras-benchmarks && bash /workspace/keras-benchmarks/shell/run.sh"]
