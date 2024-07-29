@@ -6,6 +6,9 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # 필요한 패키지 설치
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    software-properties-common \
+    && add-apt-repository ppa:deadsnakes/ppa \
+    && apt-get update && apt-get install -y --no-install-recommends \
     wget \
     gnupg2 \
     curl \
@@ -55,6 +58,9 @@ RUN python3.10 -m pip list
 
 # PYTHONPATH 환경 변수 설정
 ENV PYTHONPATH="/workspace/keras-benchmarks:${PYTHONPATH}"
+
+# 작업 디렉토리 설정
+WORKDIR /workspace/
 
 # 실행 명령어 설정
 CMD ["bash", "-c", "export PYTHONPATH=$PYTHONPATH:/workspace/keras-benchmarks && bash /workspace/keras-benchmarks/shell/run.sh"]
